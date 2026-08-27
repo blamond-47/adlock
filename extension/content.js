@@ -146,57 +146,34 @@ function handleDownloadPopup() {
                     newBtn.style.opacity = "0.7";
                     newBtn.style.pointerEvents = "none";
                     
-                    try {
-                        const isAudio = selected === "audio";
-                        const quality = isAudio ? "audio" : selected;
-                        
-                        // Kendi Vercel sunucumuzdaki API'yi çağırıyoruz!
-                        const apiUrl = `https://adlock.vercel.app/api/download?url=${encodeURIComponent(window.location.href)}&quality=${quality}`;
-                        console.log("Kendi sunucumuza istek atılıyor: " + apiUrl);
-                        
-                        const res = await fetch(apiUrl, {
-                            method: "GET"
-                        });
-                        
-                        const data = await res.json();
-                        
-                        if (data.url && !data.error) {
-                            newBtn.textContent = "İndirme Başladı! ✔️";
-                            newBtn.style.backgroundColor = "#2e7d32";
-                            
-                            // İndirmeyi doğrudan tetikle
-                            const a = document.createElement('a');
-                            a.href = data.url;
-                            
-                            // Eğer başlık geldiyse dosya ismi yapmaya çalış
-                            if (data.title) {
-                                a.download = data.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + (isAudio ? '.mp3' : '.mp4');
-                            } else {
-                                a.download = '';
-                            }
-                            
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            
-                            // Başarılı olunca 2.5 saniye sonra pencereyi kapat
-                            setTimeout(() => {
-                               const closeBtn = popup.querySelector(config.closeButton);
-                               if (closeBtn) closeBtn.click();
-                            }, 2500);
-                        } else {
-                            throw new Error(data.error || "Bilinmeyen API hatasi.");
-                        }
-                        
-                    } catch(err) {
-                        console.error("Direct download hatası:", err);
-                        newBtn.textContent = "Hata! Yönlendiriliyor...";
-                        setTimeout(() => {
-                            window.open("https://cobalt.tools/?u=" + encodeURIComponent(window.location.href), "_blank");
-                            const closeBtn = popup.querySelector(config.closeButton);
-                            if (closeBtn) closeBtn.click();
-                        }, 1500);
-                    }
+                    const isAudio = selected === "audio";
+                    const currentUrl = window.location.href;
+                    
+                    // ssyoutube (SaveFrom) altyapısını kullanarak indirme sayfasına yönlendiriyoruz
+                    // isAudio seçiliyse sonuna farklı bir parametre eklenebilir, ancak SaveFrom zaten kendi içinde ses/video seçtiriyor.
+                    const downloadUrl = currentUrl.replace("youtube.com", "ssyoutube.com");
+                    
+                    // Ekranın tam ortasında açılacak küçük pencere boyutları
+                    const width = 800;
+                    const height = 550;
+                    const left = (window.screen.width / 2) - (width / 2);
+                    const top = (window.screen.height / 2) - (height / 2);
+                    
+                    // Harici sekmeye gitmeden YouTube'un üzerinde küçük Kutu Pencere (Pop-up) açıyoruz
+                    window.open(
+                        downloadUrl, 
+                        "AdLockDownloader", 
+                        `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes`
+                    );
+                    
+                    newBtn.textContent = "İndirme Penceresi Açıldı ✔️";
+                    newBtn.style.backgroundColor = "#2e7d32";
+                    
+                    // İşlem bittikten 1.5 saniye sonra orijinal YouTube penceresini kapatıyoruz
+                    setTimeout(() => {
+                       const closeBtn = popup.querySelector(config.closeButton);
+                       if (closeBtn) closeBtn.click();
+                    }, 1500);
                 });
                 
                 actionBtn.parentNode.insertBefore(newBtn, actionBtn);
