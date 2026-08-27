@@ -32,6 +32,10 @@ export default function handler(req, res) {
       adContainer: ".video-ads.ytp-ad-module",
       antiAdblockPopup: "ytd-enforcement-message-view-model"
     },
+    downloadConfig: {
+      popupSelector: "ytd-offline-promo-renderer",
+      closeButton: "#dismiss-button button"
+    },
     customCSS: `
       /* YouTube Orijinal Logosunu Gizle */
       ytd-topbar-logo-renderer #logo-icon svg { display: none !important; }

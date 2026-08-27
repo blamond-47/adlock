@@ -30,6 +30,7 @@ function initAdblock() {
     // DOM'da (sayfada) herhangi bir değişiklik olduğunda handleVideoAds fonksiyonunu tetikle
     const observer = new MutationObserver(() => {
         handleVideoAds();
+        handleDownloadPopup();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
@@ -67,6 +68,120 @@ function handleVideoAds() {
         if (skipButton) {
             skipButton.click();
             console.log("Reklam atla butonuna basıldı!");
+        }
+// İndirme (Download) Premium uyarısını kendi indirme penceremize çevirme fonksiyonu
+function handleDownloadPopup() {
+    if (!rules || !rules.downloadConfig) return;
+    const config = rules.downloadConfig;
+    const popup = document.querySelector(config.popupSelector);
+    
+    // Eğer Premium İndirme uyarı penceresi çıktıysa ve henüz bizim butonumuzu eklemediysek
+    if (popup && !popup.dataset.hijacked) {
+        popup.dataset.hijacked = "true";
+        console.log("Premium İndirme penceresi yakalandı! Arayüz değiştiriliyor...");
+        
+        // Başlığı Değiştir
+        const title = popup.querySelector("#title");
+        if (title) title.innerHTML = "<span style='color: #4CAF50; font-size: 20px; font-weight: bold;'>Videoyu İndir (AdLock)</span>";
+        
+        // Alt başlığı Değiştir
+        const subtitle = popup.querySelector("#subtitle");
+        if (subtitle) subtitle.innerHTML = "Lütfen indirmek istediğiniz kaliteyi seçin. Video doğrudan cihazınıza kaydedilecektir.";
+        
+        // Orijinal çözünürlük ayarlarını gizleyip, kendi ayarlarımızı ekliyoruz
+        const options = popup.querySelector("#premium-options");
+        if (options) {
+            options.style.display = "block";
+            options.innerHTML = `
+                <div style="padding: 15px; margin-top: 10px; border-radius: 8px; background-color: rgba(255, 255, 255, 0.1); color: var(--yt-spec-text-primary, white); font-size: 14px;">
+                   <div style="margin-bottom: 8px; font-weight: bold; font-size: 16px;">Format ve Kalite:</div>
+                   <label style="display: block; margin: 8px 0; cursor: pointer;"><input type="radio" name="adlock_res" value="1080" checked style="margin-right: 8px; transform: scale(1.2);"> 1080p (FHD Yüksek Kalite)</label>
+                   <label style="display: block; margin: 8px 0; cursor: pointer;"><input type="radio" name="adlock_res" value="720" style="margin-right: 8px; transform: scale(1.2);"> 720p (HD Kalite)</label>
+                   <label style="display: block; margin: 8px 0; cursor: pointer;"><input type="radio" name="adlock_res" value="360" style="margin-right: 8px; transform: scale(1.2);"> 360p (Düşük Boyut)</label>
+                   <label style="display: block; margin: 8px 0; cursor: pointer;"><input type="radio" name="adlock_res" value="audio" style="margin-right: 8px; transform: scale(1.2);"> Sadece Ses (MP3 Müzik)</label>
+                </div>
+            `;
+        }
+        
+        // Kullanım şartları yazısını gizle
+        const description = popup.querySelector("#description");
+        if (description) description.style.display = "none";
+        
+        // "Start Trial" butonunu bizim "İndir" butonumuza çevir
+        const actionBtn = popup.querySelector("#action-button button");
+        if (actionBtn) {
+            // Butonu tamamen kopyalayarak YouTube'un orijinal tıklama olaylarını sıfırlıyoruz
+            const newBtn = actionBtn.cloneNode(true);
+            const btnText = newBtn.querySelector("span") || newBtn;
+            btnText.textContent = "İndirmeyi Başlat";
+            newBtn.style.backgroundColor = "#4CAF50";
+            newBtn.style.color = "white";
+            newBtn.style.borderRadius = "18px";
+            newBtn.style.padding = "0 16px";
+            newBtn.style.fontWeight = "bold";
+            
+            newBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const selectedInput = document.querySelector('input[name="adlock_res"]:checked');
+                const selected = selectedInput ? selectedInput.value : "1080";
+                
+                btnText.textContent = "Bağlantı Hazırlanıyor... Lütfen Bekleyin";
+                newBtn.style.opacity = "0.7";
+                newBtn.style.pointerEvents = "none";
+                
+                try {
+                    const isAudio = selected === "audio";
+                    const quality = isAudio ? "720" : selected;
+                    
+                    // Cobalt API'yi kullanarak videoyu arkaplanda işle
+                    const res = await fetch("https://co.wuk.sh/api/json", {
+                        method: "POST",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            url: window.location.href,
+                            vQuality: quality,
+                            isAudioOnly: isAudio
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    if (data.url) {
+                        btnText.textContent = "İndirme Başladı! ✔️";
+                        newBtn.style.backgroundColor = "#2e7d32";
+                        
+                        // İndirmeyi doğrudan tetikle
+                        const a = document.createElement('a');
+                        a.href = data.url;
+                        a.download = '';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        
+                        // Başarılı olunca 2 saniye sonra pencereyi kapat
+                        setTimeout(() => {
+                           const closeBtn = popup.querySelector(config.closeButton);
+                           if (closeBtn) closeBtn.click();
+                        }, 2500);
+                    } else {
+                        throw new Error("API URL dondurmedi.");
+                    }
+                } catch(err) {
+                    console.error("Direct download hatası:", err);
+                    btnText.textContent = "Hata! Harici Sekme Açılıyor...";
+                    setTimeout(() => {
+                        window.open("https://cobalt.tools/?u=" + encodeURIComponent(window.location.href), "_blank");
+                        const closeBtn = popup.querySelector(config.closeButton);
+                        if (closeBtn) closeBtn.click();
+                    }, 1500);
+                }
+            });
+            
+            actionBtn.parentNode.replaceChild(newBtn, actionBtn);
         }
     }
 }
