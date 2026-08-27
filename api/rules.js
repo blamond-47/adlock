@@ -41,8 +41,8 @@ export default function handler(req, res) {
       #country-code { 
         display: block !important; 
         position: absolute !important; 
-        top: 6px !important; 
-        left: 120px !important; 
+        top: 12px !important; 
+        left: 111px !important; 
         transform: none !important;
         margin: 0 !important;
         font-weight: normal !important;
