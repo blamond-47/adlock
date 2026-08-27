@@ -15,7 +15,14 @@ function initAdblock() {
     if (rules.hideSelectors && rules.hideSelectors.length > 0) {
         const style = document.createElement('style');
         // Örneğin: .ytd-ad-slot-renderer { display: none !important; }
-        style.textContent = rules.hideSelectors.map(selector => `${selector} { display: none !important; }`).join('\n');
+        let cssString = rules.hideSelectors.map(selector => `${selector} { display: none !important; }`).join('\n');
+        
+        // Eğer API'den özel CSS (Örn: Premium Logosu) geldiyse onu da ekle
+        if (rules.customCSS) {
+            cssString += '\n' + rules.customCSS;
+        }
+        
+        style.textContent = cssString;
         document.head.appendChild(style);
     }
 
