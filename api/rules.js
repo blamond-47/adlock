@@ -37,10 +37,16 @@ export default function handler(req, res) {
       ytd-topbar-logo-renderer #logo-icon svg { display: none !important; }
       
       /* Ülke Kodunu Gizlemek Yerine Premium Yazısının Üst Köşesine Taşıyalım */
+      ytd-topbar-logo-renderer { position: relative !important; }
       #country-code { 
-        display: inline-block !important; 
-        transform: translate(-22px, 4px) !important; 
+        display: block !important; 
+        position: absolute !important; 
+        top: 2px !important; 
+        left: 110px !important; 
+        transform: none !important;
+        margin: 0 !important;
         font-weight: normal !important;
+        font-size: 10px !important;
       }
       
       /* Yerine Kendi Premium Logomuzu Ekle (Gece Modu - Yazılar Beyaz) */
