@@ -39,7 +39,7 @@ export default function handler(req, res) {
       /* Ülke Kodunu Gizlemek Yerine Premium Yazısının Üst Köşesine Taşıyalım */
       #country-code { 
         display: inline-block !important; 
-        transform: translate(4px, -10px) !important; 
+        transform: translate(-22px, 4px) !important; 
         font-weight: normal !important;
       }
       
