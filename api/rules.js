@@ -36,8 +36,12 @@ export default function handler(req, res) {
       /* YouTube Orijinal Logosunu Gizle */
       ytd-topbar-logo-renderer #logo-icon svg { display: none !important; }
       
-      /* Ülke Kodunu (DE, TR vb.) Gizle */
-      #country-code { display: none !important; }
+      /* Ülke Kodunu Gizlemek Yerine Premium Yazısının Üst Köşesine Taşıyalım */
+      #country-code { 
+        display: inline-block !important; 
+        transform: translate(4px, -10px) !important; 
+        font-weight: normal !important;
+      }
       
       /* Yerine Kendi Premium Logomuzu Ekle (Gece Modu - Yazılar Beyaz) */
       ytd-topbar-logo-renderer #logo-icon {
