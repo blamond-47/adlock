@@ -69,6 +69,9 @@ function handleVideoAds() {
             skipButton.click();
             console.log("Reklam atla butonuna basıldı!");
         }
+    }
+}
+
 // İndirme (Download) Premium uyarısını kendi indirme penceremize çevirme fonksiyonu
 function handleDownloadPopup() {
     if (!rules || !rules.downloadConfig) return;
