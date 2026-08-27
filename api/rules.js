@@ -41,7 +41,7 @@ export default function handler(req, res) {
       #country-code { 
         display: block !important; 
         position: absolute !important; 
-        top: 2px !important; 
+        top: 6px !important; 
         left: 120px !important; 
         transform: none !important;
         margin: 0 !important;
