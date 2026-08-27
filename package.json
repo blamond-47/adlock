@@ -1,0 +1,23 @@
+{
+  "name": "adlock",
+  "version": "1.0.0",
+  "description": "Eğitim amaçlı, kurallarını Vercel API'den çeken YouTube Reklam Engelleyici Chrome Eklentisi Projesi.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blamond-47/adlock.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blamond-47/adlock/issues"
+  },
+  "homepage": "https://github.com/blamond-47/adlock#readme",
+  "dependencies": {
+    "@distube/ytdl-core": "^4.16.12"
+  }
+}

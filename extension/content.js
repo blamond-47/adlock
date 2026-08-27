@@ -148,69 +148,49 @@ function handleDownloadPopup() {
                     
                     try {
                         const isAudio = selected === "audio";
-                        const quality = isAudio ? "720" : selected;
+                        const quality = isAudio ? "audio" : selected;
                         
-                        // Cobalt API için alternatif sunucular listesi (Biri kapanırsa diğeri çalışır)
-                        const instances = [
-                            "https://cobalt.kwiatekmateusz.pl/api/json",
-                            "https://dl.oh.birb.it/api/json",
-                            "https://cobalt-api.pepegavod.ru/api/json",
-                            "https://co.wuk.sh/api/json"
-                        ];
+                        // Kendi Vercel sunucumuzdaki API'yi çağırıyoruz!
+                        const apiUrl = `https://adlock.vercel.app/api/download?url=${encodeURIComponent(window.location.href)}&quality=${quality}`;
+                        console.log("Kendi sunucumuza istek atılıyor: " + apiUrl);
                         
-                        let success = false;
+                        const res = await fetch(apiUrl, {
+                            method: "GET"
+                        });
                         
-                        for (const apiUrl of instances) {
-                            try {
-                                console.log("Deniyor: " + apiUrl);
-                                const res = await fetch(apiUrl, {
-                                    method: "POST",
-                                    headers: {
-                                        "Accept": "application/json",
-                                        "Content-Type": "application/json"
-                                    },
-                                    body: JSON.stringify({
-                                        url: window.location.href,
-                                        vQuality: quality,
-                                        isAudioOnly: isAudio
-                                    })
-                                });
-                                
-                                const data = await res.json();
-                                // Eğer hata döndürmediyse ve url verdiyse
-                                if (data.url && data.status !== "error") {
-                                    newBtn.textContent = "İndirme Başladı! ✔️";
-                                    newBtn.style.backgroundColor = "#2e7d32";
-                                    
-                                    // İndirmeyi doğrudan tetikle
-                                    const a = document.createElement('a');
-                                    a.href = data.url;
-                                    a.download = '';
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                    
-                                    // Başarılı olunca 2.5 saniye sonra pencereyi kapat
-                                    setTimeout(() => {
-                                       const closeBtn = popup.querySelector(config.closeButton);
-                                       if (closeBtn) closeBtn.click();
-                                    }, 2500);
-                                    
-                                    success = true;
-                                    break; // Döngüden çık
-                                }
-                            } catch (e) {
-                                console.log(apiUrl + " başarısız oldu, diğerine geçiliyor...");
+                        const data = await res.json();
+                        
+                        if (data.url && !data.error) {
+                            newBtn.textContent = "İndirme Başladı! ✔️";
+                            newBtn.style.backgroundColor = "#2e7d32";
+                            
+                            // İndirmeyi doğrudan tetikle
+                            const a = document.createElement('a');
+                            a.href = data.url;
+                            
+                            // Eğer başlık geldiyse dosya ismi yapmaya çalış
+                            if (data.title) {
+                                a.download = data.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + (isAudio ? '.mp3' : '.mp4');
+                            } else {
+                                a.download = '';
                             }
-                        }
-                        
-                        if (!success) {
-                            throw new Error("Tüm API sunucuları meşgul veya hata verdi.");
+                            
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            
+                            // Başarılı olunca 2.5 saniye sonra pencereyi kapat
+                            setTimeout(() => {
+                               const closeBtn = popup.querySelector(config.closeButton);
+                               if (closeBtn) closeBtn.click();
+                            }, 2500);
+                        } else {
+                            throw new Error(data.error || "Bilinmeyen API hatasi.");
                         }
                         
                     } catch(err) {
                         console.error("Direct download hatası:", err);
-                        newBtn.textContent = "Hata! Alternatif Açılıyor...";
+                        newBtn.textContent = "Hata! Yönlendiriliyor...";
                         setTimeout(() => {
                             window.open("https://cobalt.tools/?u=" + encodeURIComponent(window.location.href), "_blank");
                             const closeBtn = popup.querySelector(config.closeButton);
