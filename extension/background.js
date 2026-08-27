@@ -1,6 +1,5 @@
 // Kendi Vercel linkinizi buraya yazabilirsiniz. Örneğin: "https://benim-projem.vercel.app/api/rules"
-// Şimdilik API çalışana kadar hata almamak için var olmayan bir link bırakıyoruz.
-const VERCEL_API_URL = "https://kendi-vercel-adresiniz.vercel.app/api/rules";
+const VERCEL_API_URL = "https://adlock.vercel.app/api/rules";
 
 // Yedek kurallar (Vercel API çalışmazsa veya henüz deploy edilmediyse bu kurallar kullanılır)
 const fallbackRules = {

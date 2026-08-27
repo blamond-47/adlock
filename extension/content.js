@@ -35,17 +35,27 @@ function handleVideoAds() {
     const adContainer = document.querySelector(config.adContainer);
     const video = document.querySelector(config.videoPlayer);
     
-    // Eğer reklam oynatıcısı aktifse (içinde çocuk element varsa) ve ana video bulunduysa
+    // 1. YouTube Reklam Engelleyici Uyarı Ekranını (Anti-Adblock) Algılama ve Videoyu Devam Ettirme
+    if (config.antiAdblockPopup) {
+        const warningPopup = document.querySelector(config.antiAdblockPopup);
+        // Eğer uyarı ekranı DOM'da belirdiyse ve video durdurulduysa
+        if (warningPopup && video && video.paused) {
+            console.log("YouTube engelleyici uyarısı algılandı, video zorla başlatılıyor...");
+            video.play();
+            
+            // Eğer uyarı ekranında kapatma butonu varsa ona da tıkla
+            const closeButton = document.querySelector("tp-yt-paper-dialog:has(ytd-enforcement-message-view-model) #dismiss-button");
+            if (closeButton) closeButton.click();
+        }
+    }
+    
+    // 2. Reklam oynatılıyorsa ileri sar ve geç
     if (adContainer && adContainer.children.length > 0 && video) {
-        
-        // Reklam videosunun oynadığını fark edersek, videonun süresini hemen son saniyesine alıyoruz
-        // Bu, reklamın bitmiş gibi algılanmasını sağlar.
         if (!isNaN(video.duration) && video.duration > 0 && video.currentTime < video.duration) {
             video.currentTime = video.duration;
             console.log("Reklam videosu ileri sarıldı!");
         }
         
-        // "Reklamı Geç" (Skip Ad) butonu çıktıysa, bizim yerimize otomatik tıkla
         const skipButton = document.querySelector(config.skipButton);
         if (skipButton) {
             skipButton.click();
