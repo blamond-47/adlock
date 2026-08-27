@@ -42,7 +42,7 @@ export default function handler(req, res) {
         display: block !important; 
         position: absolute !important; 
         top: 2px !important; 
-        left: 110px !important; 
+        left: 120px !important; 
         transform: none !important;
         margin: 0 !important;
         font-weight: normal !important;
