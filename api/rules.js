@@ -14,6 +14,7 @@ export default function handler(req, res) {
   res.status(200).json({
     version: "1.0",
     hideSelectors: [
+      "ytd-rich-item-renderer:has(ytd-ad-slot-renderer)",
       ".ytd-ad-slot-renderer",
       ".ytd-companion-slot-renderer",
       "#player-ads",
