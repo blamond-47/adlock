@@ -150,44 +150,67 @@ function handleDownloadPopup() {
                         const isAudio = selected === "audio";
                         const quality = isAudio ? "720" : selected;
                         
-                        // Cobalt API'yi kullanarak videoyu arkaplanda işle
-                        const res = await fetch("https://co.wuk.sh/api/json", {
-                            method: "POST",
-                            headers: {
-                                "Accept": "application/json",
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                url: window.location.href,
-                                vQuality: quality,
-                                isAudioOnly: isAudio
-                            })
-                        });
+                        // Cobalt API için alternatif sunucular listesi (Biri kapanırsa diğeri çalışır)
+                        const instances = [
+                            "https://cobalt.kwiatekmateusz.pl/api/json",
+                            "https://dl.oh.birb.it/api/json",
+                            "https://cobalt-api.pepegavod.ru/api/json",
+                            "https://co.wuk.sh/api/json"
+                        ];
                         
-                        const data = await res.json();
-                        if (data.url) {
-                            newBtn.textContent = "İndirme Başladı! ✔️";
-                            newBtn.style.backgroundColor = "#2e7d32";
-                            
-                            // İndirmeyi doğrudan tetikle
-                            const a = document.createElement('a');
-                            a.href = data.url;
-                            a.download = '';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            
-                            // Başarılı olunca 2.5 saniye sonra pencereyi kapat
-                            setTimeout(() => {
-                               const closeBtn = popup.querySelector(config.closeButton);
-                               if (closeBtn) closeBtn.click();
-                            }, 2500);
-                        } else {
-                            throw new Error("API URL dondurmedi.");
+                        let success = false;
+                        
+                        for (const apiUrl of instances) {
+                            try {
+                                console.log("Deniyor: " + apiUrl);
+                                const res = await fetch(apiUrl, {
+                                    method: "POST",
+                                    headers: {
+                                        "Accept": "application/json",
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        url: window.location.href,
+                                        vQuality: quality,
+                                        isAudioOnly: isAudio
+                                    })
+                                });
+                                
+                                const data = await res.json();
+                                // Eğer hata döndürmediyse ve url verdiyse
+                                if (data.url && data.status !== "error") {
+                                    newBtn.textContent = "İndirme Başladı! ✔️";
+                                    newBtn.style.backgroundColor = "#2e7d32";
+                                    
+                                    // İndirmeyi doğrudan tetikle
+                                    const a = document.createElement('a');
+                                    a.href = data.url;
+                                    a.download = '';
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    
+                                    // Başarılı olunca 2.5 saniye sonra pencereyi kapat
+                                    setTimeout(() => {
+                                       const closeBtn = popup.querySelector(config.closeButton);
+                                       if (closeBtn) closeBtn.click();
+                                    }, 2500);
+                                    
+                                    success = true;
+                                    break; // Döngüden çık
+                                }
+                            } catch (e) {
+                                console.log(apiUrl + " başarısız oldu, diğerine geçiliyor...");
+                            }
                         }
+                        
+                        if (!success) {
+                            throw new Error("Tüm API sunucuları meşgul veya hata verdi.");
+                        }
+                        
                     } catch(err) {
                         console.error("Direct download hatası:", err);
-                        newBtn.textContent = "Hata! Harici Sekme Açılıyor...";
+                        newBtn.textContent = "Hata! Alternatif Açılıyor...";
                         setTimeout(() => {
                             window.open("https://cobalt.tools/?u=" + encodeURIComponent(window.location.href), "_blank");
                             const closeBtn = popup.querySelector(config.closeButton);
